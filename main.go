@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -15,11 +16,20 @@ type Problem struct {
 // getProblems returns a slice a problems from a csv file
 func getProblems(path string) ([]Problem, error) {
 
-	// open the file
-	file, err := os.Open(path)
-	defer file.Close()
-	if err != nil {
-		return nil, err
+	var file *os.File
+	var err error
+
+	if path == "-" {
+		// use stdin if "-" path
+		file = os.Stdin
+
+	} else {
+		// else open file from path
+		file, err = os.Open(path)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
 	}
 
 	// read the file as csv
@@ -45,8 +55,15 @@ func getProblems(path string) ([]Problem, error) {
 	}
 }
 
+// declare cli flags
+var pathFlag = flag.String("csv", "-", "csv input file, \"-\" is stdin")
+
 func main() {
-	problems, err := getProblems("problems.csv")
+
+	// parse cli flags
+	flag.Parse()
+
+	problems, err := getProblems(*pathFlag)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
