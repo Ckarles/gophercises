@@ -7,15 +7,18 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 )
+
+type Quizz []Problem
 
 type Problem struct {
 	question string
 	answer   string
 }
 
-// getProblems returns a slice a problems from a csv file
-func getProblems(path string) ([]Problem, error) {
+// getProblems returns a slice a problem from a csv file
+func getQuizz(path string) (Quizz, error) {
 
 	var file *os.File
 	var err error
@@ -30,14 +33,14 @@ func getProblems(path string) ([]Problem, error) {
 	// read the file as csv
 	c := csv.NewReader(file)
 	// init returned slice
-	var ps []Problem
+	var qz Quizz
 	for {
 		// for each line
 		r, err := c.Read()
 
 		if err == io.EOF {
 			// EOF reached, return the slice
-			return ps, nil
+			return qz, nil
 
 		} else if err != nil {
 			// any other error, return it
@@ -45,7 +48,7 @@ func getProblems(path string) ([]Problem, error) {
 
 		} else {
 			// add new Problem to slice
-			ps = append(ps, Problem{
+			qz = append(qz, Problem{
 				question: r[0],
 				answer:   strings.TrimSpace(r[1]),
 			})
@@ -53,17 +56,49 @@ func getProblems(path string) ([]Problem, error) {
 	}
 }
 
+// StartQuizz ask the questions and returns the score
+func (quizz Quizz) Start() int {
+
+	timer := time.NewTimer(time.Duration(*limitFlag) * time.Second)
+
+	score := 0
+	for i, p := range quizz {
+		answerCh := make(chan string)
+		fmt.Printf("Problem #%d: %s = ", i+1, p.question)
+		go func() {
+			var a string
+			fmt.Scanln(&a)
+			answerCh <- a
+		}()
+
+		select {
+		case a := <-answerCh:
+			if a == p.answer {
+				score++
+			}
+		case <-timer.C:
+			fmt.Println()
+			return score
+		}
+	}
+	return score
+}
+
 // declare cli flags
 var pathFlag = flag.String("csv", "problems.csv", "a csv file in the format question,answer")
+var limitFlag = flag.Int("limit", 30, "the time limit for the quizz in seconds")
 
 func main() {
 
 	// parse cli flags
 	flag.Parse()
 
-	problems, err := getProblems(*pathFlag)
+	quizz, err := getQuizz(*pathFlag)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
+
+	score := quizz.Start()
+	fmt.Printf("You score %d out of %d.\n", score, len(quizz))
 }
