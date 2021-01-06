@@ -44,7 +44,10 @@ func getProblems(path string) ([]Problem, error) {
 
 		} else {
 			// add new Problem to slice
-			ps = append(ps, Problem{r[0], r[1]})
+			ps = append(ps, Problem{
+				question: r[0],
+				answer:   r[1],
+			})
 		}
 	}
 }
