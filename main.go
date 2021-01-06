@@ -19,18 +19,12 @@ func getProblems(path string) ([]Problem, error) {
 	var file *os.File
 	var err error
 
-	if path == "-" {
-		// use stdin if "-" path
-		file = os.Stdin
-
-	} else {
-		// else open file from path
-		file, err = os.Open(path)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
+	// else open file from path
+	file, err = os.Open(path)
+	if err != nil {
+		return nil, err
 	}
+	defer file.Close()
 
 	// read the file as csv
 	c := csv.NewReader(file)
@@ -56,7 +50,7 @@ func getProblems(path string) ([]Problem, error) {
 }
 
 // declare cli flags
-var pathFlag = flag.String("csv", "-", "csv input file, \"-\" is stdin")
+var pathFlag = flag.String("csv", "problems.csv", "a csv file in the format question,answer")
 
 func main() {
 
