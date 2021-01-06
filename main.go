@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 type Problem struct {
@@ -46,7 +47,7 @@ func getProblems(path string) ([]Problem, error) {
 			// add new Problem to slice
 			ps = append(ps, Problem{
 				question: r[0],
-				answer:   r[1],
+				answer:   strings.TrimSpace(r[1]),
 			})
 		}
 	}
@@ -65,5 +66,4 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	fmt.Println(problems)
 }
