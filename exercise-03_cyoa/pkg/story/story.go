@@ -2,7 +2,7 @@ package story
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 )
 
 type Story map[string]Chapter
@@ -16,18 +16,10 @@ type Chapter struct {
 	} `json:"options"`
 }
 
-var readFile = ioutil.ReadFile
-
-func (story *Story) FromJSON(path string) error {
-	data, err := readFile(path)
+func (story *Story) FromJSON(r io.Reader) error {
+	err := json.NewDecoder(r).Decode(&story)
 	if err != nil {
 		return err
 	}
-
-	err = json.Unmarshal(data, &story)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
