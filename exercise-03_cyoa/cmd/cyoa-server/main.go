@@ -1,13 +1,13 @@
 package main
 
 import (
-	"cyoa/pkg/story"
+	"cyoa"
 	"log"
 	"os"
 )
 
 func main() {
-	st := story.Story{}
+	var story cyoa.Story
 
 	f, err := os.Open("./gopher.json")
 	defer f.Close()
@@ -16,11 +16,11 @@ func main() {
 		return
 	}
 
-	err = st.FromJSON(f)
+	err = story.FromJSON(f)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	log.Printf("%+v", st)
+	log.Printf("%+v", story)
 }
