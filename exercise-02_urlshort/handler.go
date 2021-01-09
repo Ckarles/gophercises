@@ -12,14 +12,13 @@ import (
 // that each key in the map points to, in string format).
 // If the path is not provided in the map, then the fallback
 // http.Handler will be called instead.
-func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
+func MapHandler(pathsToURLs map[string]string, fallback http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		target, ok := pathsToUrls[r.URL.Path]
-		if ok {
-			http.Redirect(w, r, target, 301)
-		} else {
-			fallback.ServeHTTP(w, r)
+		if target, ok := pathsToURLs[r.URL.Path]; ok {
+			http.Redirect(w, r, target, http.StatusFound)
+			return
 		}
+		fallback.ServeHTTP(w, r)
 	})
 }
 
@@ -49,7 +48,7 @@ func YAMLHandler(yaml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 
 type pathYAML struct {
 	Path string
-	Url  string
+	URL  string
 }
 
 func pathMapFromYAML(b []byte) (map[string]string, error) {
@@ -65,7 +64,7 @@ func pathMapFromYAML(b []byte) (map[string]string, error) {
 		if p == "" {
 			return nil, errors.New("Missing Path")
 		}
-		pathMap[k.Path] = k.Url
+		pathMap[k.Path] = k.URL
 	}
 	return pathMap, nil
 }

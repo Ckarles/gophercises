@@ -32,19 +32,19 @@ func defaultMux() *http.ServeMux {
 
 func TestMapHandler(t *testing.T) {
 	// mock redirect map
-	pathsToUrls := map[string]string{
+	pathsToURLs := map[string]string{
 		"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
 		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
 	}
 
 	// generate handler
-	handler := MapHandler(pathsToUrls, defaultMux())
+	handler := MapHandler(pathsToURLs, defaultMux())
 
 	t.Run("path=\"/yaml-godoc\"", func(t *testing.T) {
 		rs, _ := sendReq(handler, "/yaml-godoc")
 
 		t.Run("chk=statusCode", func(t *testing.T) {
-			want := 301
+			want := http.StatusFound
 			got := rs.StatusCode
 			if got != want {
 				t.Errorf("status code = \"%d\"; want \"%d\"", got, want)
@@ -52,7 +52,7 @@ func TestMapHandler(t *testing.T) {
 		})
 
 		t.Run("chk=location", func(t *testing.T) {
-			want := pathsToUrls["/yaml-godoc"]
+			want := pathsToURLs["/yaml-godoc"]
 			got := rs.Header.Get("Location")
 			if got != want {
 				t.Errorf("Header[\"Location\"] = \"%s\"; want \"%s\"", got, want)
@@ -91,7 +91,7 @@ func TestYAMLHandler(t *testing.T) {
 
 		rs, _ := sendReq(handler, "/urlshort")
 		t.Run("chk=statusCode", func(t *testing.T) {
-			want := 301
+			want := http.StatusFound
 			got := rs.StatusCode
 			if got != want {
 				t.Errorf("status code = \"%d\"; want \"%d\"", got, want)
