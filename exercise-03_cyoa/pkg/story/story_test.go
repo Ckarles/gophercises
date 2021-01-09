@@ -41,18 +41,23 @@ func init() {
 }
 
 func TestStoryFromJSON(t *testing.T) {
-	st := Story{}
-
 	t.Run("file=readable", func(t *testing.T) {
 		t.Run("json=safe", func(t *testing.T) {
-			err := st.FromJSON("safe")
-			if err != nil {
-				t.Errorf("Cannot read from json file: %s", err)
+			st := Story{}
+			st.FromJSON("safe")
+
+			if in, ok := st["intro"]; !ok {
+				t.Errorf("st[\"intro\"] missing")
+
+			} else if got, want := in.Title, "The Little Blue Gopher"; got != want {
+				t.Errorf("st[\"intro\"].title = %s; want: %s", got, want)
 			}
 		})
 
 		t.Run("json=unsafe", func(t *testing.T) {
+			st := Story{}
 			err := st.FromJSON("unsafe")
+
 			if err == nil {
 				t.Error("Malformed JSON error uncaught")
 			}
@@ -60,7 +65,9 @@ func TestStoryFromJSON(t *testing.T) {
 	})
 
 	t.Run("file=unreadable", func(t *testing.T) {
+		st := Story{}
 		err := st.FromJSON("unreadable")
+
 		if err == nil {
 			t.Error("File reading error uncaught")
 		}
