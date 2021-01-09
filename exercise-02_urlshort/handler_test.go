@@ -72,3 +72,59 @@ func TestMapHandler(t *testing.T) {
 		})
 	})
 }
+
+func TestYAMLHandler(t *testing.T) {
+
+	t.Run("yaml=safe", func(t *testing.T) {
+		yaml := []byte(`
+- path: /urlshort
+  url: https://github.com/gophercises/urlshort
+- path: /urlshort-final
+  url: https://github.com/gophercises/urlshort/tree/solution
+`)
+
+		handler, err := YAMLHandler(yaml, defaultMux())
+		if err != nil {
+			t.Errorf("Error: %s", err)
+			return
+		}
+
+		rs, _ := sendReq(handler, "/urlshort")
+		t.Run("chk=statusCode", func(t *testing.T) {
+			want := 301
+			got := rs.StatusCode
+			if got != want {
+				t.Errorf("status code = \"%d\"; want \"%d\"", got, want)
+			}
+		})
+
+		t.Run("chk=location", func(t *testing.T) {
+			want := "https://github.com/gophercises/urlshort"
+			got := rs.Header.Get("Location")
+			if got != want {
+				t.Errorf("Header[\"Location\"] = \"%s\"; want \"%s\"", got, want)
+			}
+		})
+	})
+
+	t.Run("yaml=malformed", func(t *testing.T) {
+		yaml := []byte(`
+url: /fefg
+path: xyz
+`)
+		_, err := YAMLHandler(yaml, defaultMux())
+		if err == nil {
+			t.Errorf("Malformed yaml has been parsed (it shouldn't have)")
+		}
+	})
+
+	t.Run("yaml=miss-path", func(t *testing.T) {
+		yaml := []byte(`
+- url: /fefg
+`)
+		_, err := YAMLHandler(yaml, defaultMux())
+		if err == nil {
+			t.Errorf("Malformed yaml has been parsed (it shouldn't have)")
+		}
+	})
+}
